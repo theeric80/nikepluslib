@@ -1,12 +1,12 @@
-from xml.etree.ElementTree import Element, ElementTree
+from xml.etree import ElementTree
 
-class GPX(Element):
+class GPX(ElementTree.Element):
     def __init__(self):
         # Required Attributes
         attrib = {
             'version': '1.1',
             'creator': ''}
-        Element.__init__(self, 'gpx', attrib)
+        ElementTree.Element.__init__(self, 'gpx', attrib)
 
     @property
     def version(self):
@@ -26,16 +26,16 @@ class GPX(Element):
 
     def write(self, filename):
         f = open(filename, 'w')
-        ElementTree(self).write(f)
+        ElementTree.ElementTree(self).write(f, encoding='utf-8')
         f.close()
 
-class WayPoint(Element):
+class WayPoint(ElementTree.Element):
     def __init__(self):
         # Required Attributes
         attrib = {
             'lat': '0',
             'lon': '0'}
-        Element.__init__(self, 'wpt', attrib)
+        ElementTree.Element.__init__(self, 'wpt', attrib)
 
     @property
     def lat(self):
