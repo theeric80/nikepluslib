@@ -65,6 +65,15 @@ class WayPoint(ElementTree.Element):
 
     # Elements
     @property
+    def ele(self):
+        value = _getSubElement(self, 'ele').text
+        return float(value) if value else 0
+
+    @ele.setter
+    def ele(self, value):
+        _getSubElement(self, 'ele').text = str(value)
+
+    @property
     def time(self):
         return _getSubElement(self, 'time').text
 
