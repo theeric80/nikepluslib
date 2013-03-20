@@ -5,6 +5,9 @@ class GPX(ElementTree.Element):
     def __init__(self):
         # Required Attributes
         attrib = {
+            'xmlns': 'http://www.topografix.com/GPX/1/1',
+            'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+            'xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd',
             'version': '1.1',
             'creator': ''}
         ElementTree.Element.__init__(self, 'gpx', attrib)
