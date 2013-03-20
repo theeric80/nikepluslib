@@ -84,6 +84,19 @@ class WayPoint(ElementTree.Element):
     def time(self, value):
         _getSubElement(self, 'time').text = value
 
+class Track(ElementTree.Element):
+    def __init__(self):
+        ElementTree.Element.__init__(self, 'trk')
+
+class TrackSegment(ElementTree.Element):
+    def __init__(self):
+        ElementTree.Element.__init__(self, 'trkseg')
+
+class TrackPoint(WayPoint):
+    def __init__(self):
+        WayPoint.__init__(self)
+        self.tag = 'trkpt'
+
 # Utils
 def _getSubElement(parent, tag):
     element = parent.find(tag)
