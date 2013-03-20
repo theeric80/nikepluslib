@@ -1,16 +1,18 @@
 from xml.etree import ElementTree
 from xml.dom import minidom
 
-class GPX(ElementTree.Element):
-    def __init__(self):
+# Complex Types
+class GPXType(ElementTree.Element):
+    def __init__(self, tag):
         # Required Attributes
         attrib = {
-            'xmlns': 'http://www.topografix.com/GPX/1/1',
-            'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-            'xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd',
             'version': '1.1',
             'creator': ''}
-        ElementTree.Element.__init__(self, 'gpx', attrib)
+        # Namespace
+        attrib['xmlns'] = 'http://www.topografix.com/GPX/1/1'
+        attrib['xmlns:xsi'] = 'http://www.w3.org/2001/XMLSchema-instance'
+        attrib['xsi:schemaLocation'] = 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd'
+        ElementTree.Element.__init__(self, tag, attrib)
 
     @property
     def version(self):
@@ -28,22 +30,21 @@ class GPX(ElementTree.Element):
     def creator(self, value):
         self.set('creator', value)
 
-    def write(self, filename, pretty_print=False):
-        f = open(filename, 'w')
-        if pretty_print:
-            text = ElementTree.tostring(self, encoding='UTF-8')
-            f.write( minidom.parseString(text).toprettyxml(encoding='UTF-8') )
-        else:
-            ElementTree.ElementTree(self).write(f, encoding='UTF-8')
-        f.close()
+class TrackType(ElementTree.Element):
+    def __init__(self, tag):
+        ElementTree.Element.__init__(self, tag)
 
-class WayPoint(ElementTree.Element):
-    def __init__(self):
+class TrackSegmentType(ElementTree.Element):
+    def __init__(self, tag):
+        ElementTree.Element.__init__(self, tag)
+
+class WayPointType(ElementTree.Element):
+    def __init__(self, tag):
         # Required Attributes
         attrib = {
             'lat': '0',
             'lon': '0'}
-        ElementTree.Element.__init__(self, 'wpt', attrib)
+        ElementTree.Element.__init__(self, tag, attrib)
 
     # Attributes
     @property
@@ -84,18 +85,35 @@ class WayPoint(ElementTree.Element):
     def time(self, value):
         _getSubElement(self, 'time').text = value
 
-class Track(ElementTree.Element):
+# Elements
+class GPX(GPXType):
     def __init__(self):
-        ElementTree.Element.__init__(self, 'trk')
+        GPXType.__init__(self, 'gpx')
 
-class TrackSegment(ElementTree.Element):
-    def __init__(self):
-        ElementTree.Element.__init__(self, 'trkseg')
+    def write(self, filename, pretty_print=False):
+        f = open(filename, 'w')
+        if pretty_print:
+            text = ElementTree.tostring(self, encoding='UTF-8')
+            f.write( minidom.parseString(text).toprettyxml(encoding='UTF-8') )
+        else:
+            ElementTree.ElementTree(self).write(f, encoding='UTF-8')
+        f.close()
 
-class TrackPoint(WayPoint):
+class Track(TrackType):
     def __init__(self):
-        WayPoint.__init__(self)
-        self.tag = 'trkpt'
+        TrackType.__init__(self, 'trk')
+
+class TrackSegment(TrackSegmentType):
+    def __init__(self):
+        TrackSegmentType.__init__(self, 'trkseg')
+
+class TrackPoint(WayPointType):
+    def __init__(self):
+        WayPointType.__init__(self, 'trkpt')
+
+class WayPoint(WayPointType):
+    def __init__(self):
+        WayPointType.__init__(self, 'wpt')
 
 # Utils
 def _getSubElement(parent, tag):
