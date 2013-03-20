@@ -2,10 +2,8 @@
 # TODO: Unittest
 
 if __name__ == '__main__':
+    from os.path import split
     import nikeplus
-    activity_list = nikeplus.get_activity_list()
-    for activity in activity_list:
-        print '--------------------'
-        print 'Activity Id: %s' % activity.id
-        print 'Number of GPS data:  %d' % len(activity.way_points)
-        print '--------------------'
+
+    target = split(__file__)[0]
+    nikeplus.write_activities_to_gpx(target)

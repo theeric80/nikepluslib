@@ -2,6 +2,10 @@ import urllib
 import urllib2
 import json
 
+from os.path import join
+import gpx
+import datetime
+
 API_URL = 'https://api.nike.com/me/sport'
 
 # TODO: OAuth
@@ -49,6 +53,44 @@ def get_activity_list():
         activities.append(obj)
 
     return activities
+
+def write_activities_to_gpx(target_folder):
+    # TODO: (startDate, endDate)
+    activity_list = get_activity_list()
+    for activity in activity_list:
+        numof_way_points = len(activity.way_points)
+        if numof_way_points <= 0:
+            continue
+
+        current_time = datetime.datetime.strptime(activity.start_time, '%Y-%m-%dT%H:%M:%SZ')
+        # Create Root element
+        root = gpx.GPX()
+
+        # Add Track into Root
+        trk = gpx.Track()
+        root.append(trk)
+
+        # Add TrackSegment into Track
+        trkseg = gpx.TrackSegment()
+        trk.append(trkseg)
+
+        # Add TrackPoints into TrackSegment
+        for item in activity.way_points:
+            pt = gpx.TrackPoint()
+            pt.lat = item['latitude']
+            pt.lon = item['longitude']
+            pt.ele = item['elevation']
+            pt.time = current_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+            trkseg.append(pt)
+
+            # TODO: magic number: 10
+            current_time += datetime.timedelta(seconds=10)
+
+        filename = 'NIKE+_gpx_%s.gpx' % current_time.strftime('%Y-%m-%d_%H%M')
+        filepath = join(target_folder, filename)
+
+        print 'Write NIKE+ activities to: %s' % filepath
+        root.write(filepath, pretty_print=True)
 
 def _send_request(url, params={}):
     params['access_token'] = TOKEN
