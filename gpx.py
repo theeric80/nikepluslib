@@ -1,4 +1,5 @@
 from xml.etree import ElementTree
+from xml.dom import minidom
 
 class GPX(ElementTree.Element):
     def __init__(self):
@@ -24,9 +25,13 @@ class GPX(ElementTree.Element):
     def creator(self, value):
         self.set('creator', value)
 
-    def write(self, filename):
+    def write(self, filename, pretty_print=False):
         f = open(filename, 'w')
-        ElementTree.ElementTree(self).write(f, encoding='utf-8')
+        if pretty_print:
+            text = ElementTree.tostring(self, encoding='UTF-8')
+            f.write( minidom.parseString(text).toprettyxml(encoding='UTF-8') )
+        else:
+            ElementTree.ElementTree(self).write(f, encoding='UTF-8')
         f.close()
 
 class WayPoint(ElementTree.Element):
