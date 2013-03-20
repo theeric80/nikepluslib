@@ -42,6 +42,7 @@ class WayPoint(ElementTree.Element):
             'lon': '0'}
         ElementTree.Element.__init__(self, 'wpt', attrib)
 
+    # Attributes
     @property
     def lat(self):
         return float( self.get('lat', 0) )
@@ -61,3 +62,20 @@ class WayPoint(ElementTree.Element):
         assert(value <= 180)
         assert(value >= -180)
         self.set('lon', str(value))
+
+    # Elements
+    @property
+    def time(self):
+        return _getSubElement(self, 'time').text
+
+    @time.setter
+    def time(self, value):
+        _getSubElement(self, 'time').text = value
+
+# Utils
+def _getSubElement(parent, tag):
+    element = parent.find(tag)
+    if not element:
+        element = ElementTree.Element(tag)
+        parent.append(element)
+    return element
