@@ -2,90 +2,70 @@ from xml.etree import ElementTree
 from xml.dom import minidom
 
 # Complex Types
-class GPXType(ElementTree.Element):
-    def __init__(self, tag):
-        # Required Attributes
-        attrib = {
-            'version': '1.1',
-            'creator': ''}
-        # Namespace
-        attrib['xmlns'] = 'http://www.topografix.com/GPX/1/1'
-        attrib['xmlns:xsi'] = 'http://www.w3.org/2001/XMLSchema-instance'
-        attrib['xsi:schemaLocation'] = 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd'
-        ElementTree.Element.__init__(self, tag, attrib)
-
-    @property
-    def version(self):
-        return self.get('version', '1.1')
-
-    @version.setter
-    def version(self, value):
-        self.set('version', value)
-
-    @property
-    def creator(self):
-        return self.get('creator', '')
-
-    @creator.setter
-    def creator(self, value):
-        self.set('creator', value)
-
-class TrackType(ElementTree.Element):
-    def __init__(self, tag):
+class ComplexType(ElementTree.Element):
+    def __init__(self, tag, attributes=[], elements=[]):
+        self._attributes = attributes   # attributes
+        self._elements   = elements     # simple elements
         ElementTree.Element.__init__(self, tag)
 
-class TrackSegmentType(ElementTree.Element):
-    def __init__(self, tag):
-        ElementTree.Element.__init__(self, tag)
+    def _subElement(self, tag):
+        element = self.find(tag)
+        if element is None:
+            element = ElementTree.Element(tag)
+            self.append(element)
+        return element
 
-class WayPointType(ElementTree.Element):
+    def __setattr__(self, name, value):
+        if name in ['_attributes', '_elements']:
+            pass
+        elif name in self._attributes:
+            self.set(name, str(value))
+        elif name in self._elements:
+            self._subElement(name).text = str(value)
+        super(ComplexType, self).__setattr__(name, value)
+
+class GPXType(ComplexType):
     def __init__(self, tag):
+        attributes  = ['version', 'creator']
+        elements    = []
+        # Complex Elements: [metadata, wpt, rte, trk, extensions]
+        ComplexType.__init__(self, tag, attributes, elements)
+
         # Required Attributes
-        attrib = {
-            'lat': '0',
-            'lon': '0'}
-        ElementTree.Element.__init__(self, tag, attrib)
+        self.version = '1.1'
+        self.creator = ''
 
-    # Attributes
-    @property
-    def lat(self):
-        return float( self.get('lat', 0) )
+        # Hack: Namespace
+        self.set('xmlns', 'http://www.topografix.com/GPX/1/1')
+        self.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+        self.set('xsi:schemaLocation', 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd')
 
-    @lat.setter
-    def lat(self, value):
-        assert(value <= 90)
-        assert(value >= -90)
-        self.set('lat', str(value))
+class TrackType(ComplexType):
+    def __init__(self, tag):
+        attributes  = []
+        elements    = ['name', 'cmt', 'desc', 'src', 'number', 'type']
+        # Complex Elements: [link, extensions, trkseg]
+        ComplexType.__init__(self, tag, attributes, elements)
 
-    @property
-    def lon(self):
-        return float( self.get('lon', 0) )
+class TrackSegmentType(ComplexType):
+    def __init__(self, tag):
+        attributes  = []
+        elements    = []
+        # Complex Elements: [trkpt, extensions]
+        ComplexType.__init__(self, tag, attributes, elements)
 
-    @lon.setter
-    def lon(self, value):
-        assert(value <= 180)
-        assert(value >= -180)
-        self.set('lon', str(value))
+class WayPointType(ComplexType):
+    def __init__(self, tag):
+        attributes  = ['lat', 'lon']
+        elements    = ['ele', 'time', 'geoidheight', 'name', 'cmt', 'desc', 'src', 'sym', 'type', 'sat', 'hdop', 'vdop', 'pdop', 'ageofdgpsdata']
+        # Complex Elements: [magvar, link, fix, dgpsid, extensions]
+        ComplexType.__init__(self, tag, attributes, elements)
 
-    # Elements
-    @property
-    def ele(self):
-        value = _getSubElement(self, 'ele').text
-        return float(value) if value else 0
+        # Required Attributes
+        self.lat = 0
+        self.lon = 0
 
-    @ele.setter
-    def ele(self, value):
-        _getSubElement(self, 'ele').text = str(value)
-
-    @property
-    def time(self):
-        return _getSubElement(self, 'time').text
-
-    @time.setter
-    def time(self, value):
-        _getSubElement(self, 'time').text = value
-
-# Elements
+# Complex Elements
 class GPX(GPXType):
     def __init__(self):
         GPXType.__init__(self, 'gpx')
@@ -115,10 +95,3 @@ class WayPoint(WayPointType):
     def __init__(self):
         WayPointType.__init__(self, 'wpt')
 
-# Utils
-def _getSubElement(parent, tag):
-    element = parent.find(tag)
-    if not element:
-        element = ElementTree.Element(tag)
-        parent.append(element)
-    return element
