@@ -54,7 +54,7 @@ def get_activity_list():
 
     return activities
 
-def write_activities_to_gpx(target_folder):
+def export_activities_to_gpx(target_folder):
     # TODO: (startDate, endDate)
     activity_list = get_activity_list()
     for activity in activity_list:
@@ -89,7 +89,7 @@ def write_activities_to_gpx(target_folder):
         filename = 'NIKE+_gpx_%s.gpx' % current_time.strftime('%Y-%m-%d_%H%M')
         filepath = join(target_folder, filename)
 
-        print 'Write NIKE+ activities to: %s' % filepath
+        print 'Export NIKE+ activities to: %s' % filepath
         root.write(filepath, pretty_print=True)
 
 def _send_request(url, params={}):
