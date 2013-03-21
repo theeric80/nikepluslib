@@ -18,15 +18,20 @@ class Activity(object):
         # GPS data
         self._way_points = None
 
-    def __str__(self):
-        return '%s(%s)' % (self.__class__, self.id)
-
     def _parse_activity_data(self, data):
-        self.id         = data.get('activityId', '')
-        self.calories   = data.get('calories', 0)
-        self.distance   = data.get('distance', 0)
-        self.duration   = data.get('duration', '')
-        self.start_time = data.get('startTime', '')
+        self.activityId         = data.get('activityId', '')
+        self.activityType       = data.get('activityType', '')
+        self.activityTimeZone   = data.get('activityTimeZone', '')
+        self.startTime          = data.get('startTime', '')
+        self.deviceType         = data.get('deviceType', '')
+
+        # metricSummary
+        metricSummary   = data.get('metricSummary')
+        self.distance   = metricSummary.get('distance', 0)
+        self.duration   = metricSummary.get('duration', '')
+        self.calories   = metricSummary.get('calories', 0)
+        self.fuel       = metricSummary.get('fuel', 0)
+        self.steps      = metricSummary.get('steps', 0)
 
     @property
     def way_points(self):
@@ -35,7 +40,7 @@ class Activity(object):
         return self._way_points
 
     def _get_gps_data(self):
-        url = API_URL + '/activities/%s/gps' % self.id
+        url = API_URL + '/activities/%s/gps' % self.activityId
         response = _send_request(url)
         return response.get('waypoints', [])
 
@@ -62,7 +67,7 @@ def export_activities_to_gpx(target_folder):
         if numof_way_points <= 0:
             continue
 
-        current_time = datetime.datetime.strptime(activity.start_time, '%Y-%m-%dT%H:%M:%SZ')
+        current_time = datetime.datetime.strptime(activity.startTime, '%Y-%m-%dT%H:%M:%SZ')
         # Create Root element
         root = gpx.GPX()
 
