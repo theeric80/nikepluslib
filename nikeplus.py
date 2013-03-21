@@ -16,7 +16,7 @@ class Activity(object):
         # prepare activity data
         self._parse_activity_data(activity_data)
         # GPS data
-        self._way_points = None
+        self._gps = None
 
     def _parse_activity_data(self, data):
         self.activityId         = data.get('activityId', '')
@@ -34,15 +34,29 @@ class Activity(object):
         self.steps      = metricSummary.get('steps', 0)
 
     @property
-    def way_points(self):
-        if self._way_points is None:
-            self._way_points = self._get_gps_data()
-        return self._way_points
+    def gps(self):
+        if self._gps is None:
+            self._gps = GPSData(self.activityId)
+        return self._gps
+
+class GPSData(object):
+    def __init__(self, activityId):
+        self.activityId = activityId
+        self._get_gps_data()
 
     def _get_gps_data(self):
         url = API_URL + '/activities/%s/gps' % self.activityId
         response = _send_request(url)
-        return response.get('waypoints', [])
+        self._parse_gps_data(response)
+
+    def _parse_gps_data(self, data):
+        self.elevationLoss  = data.get('elevationLoss', 0)
+        self.elevationGain  = data.get('elevationGain', 0)
+        self.elevationMin   = data.get('elevationMin', 0)
+        self.elevationMax   = data.get('elevationMax', 0)
+        self.intervalMetric = data.get('intervalMetric', 0)
+        self.intervalUnit   = data.get('intervalUnit', '')
+        self.wayPoints      = data.get('waypoints', [])
 
 def get_activity_list():
     activities = []
@@ -63,7 +77,8 @@ def export_activities_to_gpx(target_folder):
     # TODO: (startDate, endDate)
     activity_list = get_activity_list()
     for activity in activity_list:
-        numof_way_points = len(activity.way_points)
+        way_points = activity.gps.wayPoints
+        numof_way_points = len(way_points)
         if numof_way_points <= 0:
             continue
 
@@ -80,7 +95,7 @@ def export_activities_to_gpx(target_folder):
         trk.append(trkseg)
 
         # Add TrackPoints into TrackSegment
-        for item in activity.way_points:
+        for item in way_points:
             pt = gpx.TrackPoint()
             pt.lat = item['latitude']
             pt.lon = item['longitude']
@@ -88,7 +103,7 @@ def export_activities_to_gpx(target_folder):
             pt.time = current_time.strftime('%Y-%m-%dT%H:%M:%SZ')
             trkseg.append(pt)
 
-            # TODO: set delta from activity.intervalMetric
+            # TODO: set delta from activity.gps.intervalMetric
             delta = 1
             current_time += datetime.timedelta(seconds=delta)
 
