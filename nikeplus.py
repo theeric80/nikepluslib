@@ -6,7 +6,8 @@ from os.path import join
 import gpx
 import datetime
 
-API_URL = 'https://api.nike.com/me/sport'
+SRV_URL = 'https://api.nike.com'
+API_URL = SRV_URL + '/me/sport'
 
 # TODO: OAuth
 TOKEN   = ''
@@ -63,20 +64,25 @@ def get_activity_list():
 
     # TODO: params (offset, count, startDate, endDate)
     url = API_URL + '/activities'
-    response = _send_request(url)
 
     # create activity objects
-    # TODO: next
-    for item in response['data']:
-        obj = Activity(item)
-        activities.append(obj)
+    while url:
+        params = {}
+        response = _send_request(url, params)
+        for item in response['data']:
+            obj = Activity(item)
+            activities.append(obj)
 
+        next = response['paging'].get('next')
+        url = SRV_URL + next if next else ''
     return activities
 
 def export_activities_to_gpx(target_folder, pretty_print=False):
     # TODO: (startDate, endDate)
     activity_list = get_activity_list()
     for activity in activity_list:
+        print 'Parsing NIKE+ activity: %s' % activity.startTime
+
         way_points = activity.gps.wayPoints
         numof_way_points = len(way_points)
         if numof_way_points <= 0:
@@ -114,8 +120,9 @@ def export_activities_to_gpx(target_folder, pretty_print=False):
         root.write(filepath, pretty_print)
 
 def _send_request(url, params={}):
-    params['access_token'] = TOKEN
-    url += '?' + urllib.urlencode(params)
+    if url.find('?') < 0:
+        params['access_token'] = TOKEN
+        url += '?' + urllib.urlencode(params)
 
     try:
         data = None
