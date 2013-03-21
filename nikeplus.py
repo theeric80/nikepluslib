@@ -73,7 +73,7 @@ def get_activity_list():
 
     return activities
 
-def export_activities_to_gpx(target_folder):
+def export_activities_to_gpx(target_folder, pretty_print=False):
     # TODO: (startDate, endDate)
     activity_list = get_activity_list()
     for activity in activity_list:
@@ -111,7 +111,7 @@ def export_activities_to_gpx(target_folder):
         filepath = join(target_folder, filename)
 
         print 'Export NIKE+ activities to: %s' % filepath
-        root.write(filepath, pretty_print=True)
+        root.write(filepath, pretty_print)
 
 def _send_request(url, params={}):
     params['access_token'] = TOKEN
