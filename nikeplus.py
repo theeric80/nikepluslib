@@ -83,8 +83,9 @@ def export_activities_to_gpx(target_folder):
             pt.time = current_time.strftime('%Y-%m-%dT%H:%M:%SZ')
             trkseg.append(pt)
 
-            # TODO: magic number: 10
-            current_time += datetime.timedelta(seconds=10)
+            # TODO: set delta from activity.intervalMetric
+            delta = 1
+            current_time += datetime.timedelta(seconds=delta)
 
         filename = 'NIKE+_gpx_%s.gpx' % current_time.strftime('%Y-%m-%d_%H%M')
         filepath = join(target_folder, filename)
