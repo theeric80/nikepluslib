@@ -4,6 +4,7 @@ import json
 
 from os.path import join
 import gpx
+import time
 import datetime
 
 SRV_URL = 'https://api.nike.com'
@@ -89,7 +90,16 @@ def export_activities_to_gpx(target_folder, pretty_print=False):
         if numof_way_points <= 0:
             continue
 
+        # Set the time delta
+        try:
+            # tm_delta = total_duration / number_of_way_points
+            duration = time.strptime(activity.duration.split('.')[0], '%H:%M:%S')
+            tm_delta = datetime.timedelta(hours=duration.tm_hour, minutes=duration.tm_min, seconds=duration.tm_sec) / numof_way_points
+        except:
+            tm_delta = datetime.timedelta(seconds=activity.gps.intervalMetric)
+
         current_time = start_time
+
         # Create Root element
         root = gpx.GPX()
 
@@ -110,9 +120,7 @@ def export_activities_to_gpx(target_folder, pretty_print=False):
             pt.time = current_time.strftime('%Y-%m-%dT%H:%M:%SZ')
             trkseg.append(pt)
 
-            # TODO: set delta from activity.gps.intervalMetric
-            delta = 1
-            current_time += datetime.timedelta(seconds=delta)
+            current_time += tm_delta
 
         filename = 'NIKE+_gpx_%s.gpx' % start_time.strftime('%Y-%m-%d_%H%M')
         filepath = join(target_folder, filename)
