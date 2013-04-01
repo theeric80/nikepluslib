@@ -60,27 +60,49 @@ class GPSData(object):
         self.intervalUnit   = data.get('intervalUnit', '')
         self.wayPoints      = data.get('waypoints', [])
 
-def get_activity_list():
+def get_activity_list(startDate='', endDate=''):
+    # Date format: yyyy-mm-dd
     activities = []
 
     # TODO: params (offset, count, startDate, endDate)
     url = API_URL + '/activities'
 
-    # create activity objects
+    tm_start = None
     while url:
+        # Init the params
         params = {}
+
+        if startDate and endDate:
+            params['startDate'] = startDate
+            params['endDate']   = endDate
+
+        # Get the activities from host
         response = _send_request(url, params)
-        for item in response['data']:
+        data_list = response.get('data')
+        if not data_list:
+            break
+
+        # TODO: response['paging']['next'] will not be None if we add startDate/endDate into query parameters.
+        # Workaround: Check the start time of the first activity. Break while loop if we have handled it before.
+        tm_current = time.strptime(data_list[0]['startTime'], '%Y-%m-%dT%H:%M:%SZ')
+        if not tm_start:
+            tm_start = tm_current
+        elif tm_current >= tm_start:
+            break
+
+        # Create Activity objects
+        for item in data_list:
             obj = Activity(item)
             activities.append(obj)
 
+        # Prepare the url for next query
         next = response['paging'].get('next')
         url = SRV_URL + next if next else ''
+
     return activities
 
-def export_activities_to_gpx(target_folder, pretty_print=False):
-    # TODO: (startDate, endDate)
-    activity_list = get_activity_list()
+def export_activities_to_gpx(target_folder, start_date='', end_date='', pretty_print=False):
+    activity_list = get_activity_list(start_date, end_date)
     for activity in activity_list:
         start_time = datetime.datetime.strptime(activity.startTime, '%Y-%m-%dT%H:%M:%SZ')
         print 'Parsing NIKE+ activity: %s' % start_time.strftime('%Y-%m-%d_%H%M')
