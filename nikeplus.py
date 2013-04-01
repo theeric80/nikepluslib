@@ -81,14 +81,15 @@ def export_activities_to_gpx(target_folder, pretty_print=False):
     # TODO: (startDate, endDate)
     activity_list = get_activity_list()
     for activity in activity_list:
-        print 'Parsing NIKE+ activity: %s' % activity.startTime
+        start_time = datetime.datetime.strptime(activity.startTime, '%Y-%m-%dT%H:%M:%SZ')
+        print 'Parsing NIKE+ activity: %s' % start_time.strftime('%Y-%m-%d_%H%M')
 
         way_points = activity.gps.wayPoints
         numof_way_points = len(way_points)
         if numof_way_points <= 0:
             continue
 
-        current_time = datetime.datetime.strptime(activity.startTime, '%Y-%m-%dT%H:%M:%SZ')
+        current_time = start_time
         # Create Root element
         root = gpx.GPX()
 
@@ -113,7 +114,7 @@ def export_activities_to_gpx(target_folder, pretty_print=False):
             delta = 1
             current_time += datetime.timedelta(seconds=delta)
 
-        filename = 'NIKE+_gpx_%s.gpx' % current_time.strftime('%Y-%m-%d_%H%M')
+        filename = 'NIKE+_gpx_%s.gpx' % start_time.strftime('%Y-%m-%d_%H%M')
         filepath = join(target_folder, filename)
 
         print 'Export NIKE+ activities to: %s' % filepath
