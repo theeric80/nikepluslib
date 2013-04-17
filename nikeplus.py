@@ -10,6 +10,8 @@ import datetime
 SRV_URL = 'https://api.nike.com'
 API_URL = SRV_URL + '/me/sport'
 
+UTC_DATE_FMT = '%Y-%m-%dT%H:%M:%SZ'
+
 # TODO: OAuth
 TOKEN   = ''
 
@@ -84,7 +86,7 @@ def get_activity_list(startDate='', endDate=''):
 
         # TODO: response['paging']['next'] will not be None if we add startDate/endDate into query parameters.
         # Workaround: Check the start time of the first activity. Break while loop if we have handled it before.
-        tm_current = time.strptime(data_list[0]['startTime'], '%Y-%m-%dT%H:%M:%SZ')
+        tm_current = time.strptime(data_list[0]['startTime'], UTC_DATE_FMT)
         if not tm_start:
             tm_start = tm_current
         elif tm_current >= tm_start:
@@ -104,7 +106,7 @@ def get_activity_list(startDate='', endDate=''):
 def export_activities_to_gpx(target_folder, start_date='', end_date='', pretty_print=False):
     activity_list = get_activity_list(start_date, end_date)
     for activity in activity_list:
-        start_time = datetime.datetime.strptime(activity.startTime, '%Y-%m-%dT%H:%M:%SZ')
+        start_time = datetime.datetime.strptime(activity.startTime, UTC_DATE_FMT)
         print 'Parsing NIKE+ activity: %s' % start_time.strftime('%Y-%m-%d_%H%M')
 
         way_points = activity.gps.wayPoints
@@ -139,7 +141,7 @@ def export_activities_to_gpx(target_folder, start_date='', end_date='', pretty_p
             pt.lat = item['latitude']
             pt.lon = item['longitude']
             pt.ele = item['elevation']
-            pt.time = current_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+            pt.time = current_time.strftime(UTC_DATE_FMT)
             trkseg.append(pt)
 
             current_time += tm_delta
