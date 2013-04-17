@@ -2,6 +2,10 @@
 # TODO: Unittest
 
 if __name__ == '__main__':
+    import logging
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(level=logging.INFO)
+
     from os.path import split
     import sys
     import time

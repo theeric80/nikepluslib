@@ -7,6 +7,9 @@ import gpx
 import time
 import datetime
 
+import logging
+logger = logging.getLogger(__name__)
+
 SRV_URL = 'https://api.nike.com'
 API_URL = SRV_URL + '/me/sport'
 
@@ -107,7 +110,7 @@ def export_activities_to_gpx(target_folder, start_date='', end_date='', pretty_p
     activity_list = get_activity_list(start_date, end_date)
     for activity in activity_list:
         start_time = datetime.datetime.strptime(activity.startTime, UTC_DATE_FMT)
-        print 'Parsing NIKE+ activity: %s' % start_time.strftime('%Y-%m-%d_%H%M')
+        logger.info('Parsing NIKE+ activity: %s' % start_time.strftime('%Y-%m-%d_%H%M'))
 
         way_points = activity.gps.wayPoints
         numof_way_points = len(way_points)
@@ -149,7 +152,7 @@ def export_activities_to_gpx(target_folder, start_date='', end_date='', pretty_p
         filename = 'NIKE+_gpx_%s.gpx' % start_time.strftime('%Y-%m-%d_%H%M')
         filepath = join(target_folder, filename)
 
-        print 'Export NIKE+ activities to: %s' % filepath
+        logger.info('Export NIKE+ activity to: %s' % filepath)
         root.write(filepath, pretty_print)
 
 def _send_request(url, params={}):
@@ -168,7 +171,7 @@ def _send_request(url, params={}):
 
         response = json.load(file)
     except urllib2.HTTPError as err:
-        print 'Error: _send_request(%s) = %s' % (url, err.read())
+        logger.error('Error: _send_request(%s) = %s' % (url, err.read()))
         response = {}
 
     return response
